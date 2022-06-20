@@ -92,6 +92,20 @@ jobs:
               aws cloudfront create-invalidation --distribution-id ${DEV_DISTRIBUTION_ID} --paths /\*
             fi
 
+  deploy-to-heroku:
+    executor: app-executor
+    steps: 
+      - checkout
+      - run:
+          name: Show current branch
+          command: echo ${CIRCLE_BRANCH}
+      - run:
+          name: Deploy to Heroku
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "develop" ]
+            then
+              git push https://heroku:$HEROKU_API_KEY@git.heroku.com/cinema-react-dev.git ${CIRCLE_BRANCH}:master -f
+            fi
 workflows:
   build_and_deploy:
     jobs:
@@ -114,4 +128,11 @@ workflows:
                 - develop
                 - staging
                 - master
+      - deploy-to-heroku:
+          requires:
+            - build
+          filters:  
+            branches:
+              only:
+                - develop
 
